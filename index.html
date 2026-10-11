@@ -1,0 +1,589 @@
+<title>Grille Synthèse Delhi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout : barre de score collante en haut, colonne élèves à gauche, critères au centre ; tout s'empile en mobile */
+:root{
+  --bg:#f3f6f7; --surface:#ffffff; --ink:#13222c; --muted:#5a6a74; --line:#d6e0e5;
+  --accent:#0d6a87; --accent-soft:#dff0f6; --saffron:#b9690f; --saffron-soft:#fbefdf;
+  --l1:#b2402f; --l1s:#f8e3df; --l2:#b9690f; --l2s:#fbefdf; --l3:#2c7a52; --l3s:#e1f2e8; --l4:#0d6a87; --l4s:#dff0f6;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e171d; --surface:#15222a; --ink:#e4edf1; --muted:#93a6b1; --line:#2a3b45;
+  --accent:#5cc0de; --accent-soft:#163543; --saffron:#f0a54c; --saffron-soft:#3a2a15;
+  --l1:#f08877; --l1s:#3b1f1a; --l2:#f0a54c; --l2s:#3a2a15; --l3:#6ccf97; --l3s:#16301f; --l4:#5cc0de; --l4s:#163543;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e171d; --surface:#15222a; --ink:#e4edf1; --muted:#93a6b1; --line:#2a3b45;
+  --accent:#5cc0de; --accent-soft:#163543; --saffron:#f0a54c; --saffron-soft:#3a2a15;
+  --l1:#f08877; --l1s:#3b1f1a; --l2:#f0a54c; --l2s:#3a2a15; --l3:#6ccf97; --l3s:#16301f; --l4:#5cc0de; --l4s:#163543;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+header.top{padding-block:22px 10px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;justify-content:space-between}
+header.top h1{font-size:1.7rem;font-weight:800;letter-spacing:-.01em}
+header.top p{margin:0;color:var(--muted);max-width:62ch}
+.eyebrow{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--saffron);font-weight:700}
+
+.scorebar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.scorebar-in{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 12px;display:flex;flex-direction:column;min-width:92px}
+.chip span{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.chip b{font-family:var(--mono);font-size:1.05rem}
+.chip.total{border-color:var(--accent)}
+.chip.note{background:var(--accent);border-color:var(--accent);color:var(--bg);min-width:120px}
+.chip.note span{color:var(--bg);opacity:.85}
+.chip.note b{font-size:1.5rem}
+.chip.cecrl{min-width:80px}
+.who{font-family:var(--display);font-weight:700;font-size:1.1rem;align-self:center;margin-right:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:1fr}}
+
+aside.side{display:flex;flex-direction:column;gap:14px;position:sticky;top:100px}
+@media (max-width:860px){aside.side{position:static}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.panel h2{font-size:1rem;margin-bottom:8px}
+.stu-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:44vh;overflow:auto}
+.stu-list button{width:100%;display:flex;justify-content:space-between;gap:8px;background:none;border:1px solid transparent;border-radius:8px;padding:6px 8px;text-align:left}
+.stu-list button:hover{background:var(--accent-soft)}
+.stu-list button[aria-current="true"]{background:var(--accent-soft);border-color:var(--accent);font-weight:700}
+.stu-list .n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stu-list .s{font-family:var(--mono);color:var(--muted);font-size:.85rem}
+.addrow{display:flex;gap:6px;margin-top:10px}
+input[type=text],textarea{width:100%;min-width:0;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit}
+textarea{resize:vertical;min-height:84px}
+.btn{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-weight:600;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.btn.primary:hover{color:var(--bg);filter:brightness(1.08)}
+.btn.danger{color:var(--l1)}
+.btn.danger.armed{background:var(--l1);border-color:var(--l1);color:var(--bg)}
+.small{font-size:.82rem;color:var(--muted)}
+.btnrow{display:flex;flex-wrap:wrap;gap:6px}
+
+main{display:flex;flex-direction:column;gap:22px;min-width:0}
+details.ref{background:var(--saffron-soft);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+details.ref summary{font-family:var(--display);font-weight:700;cursor:pointer}
+.refgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:12px}
+.refgrid h3{font-size:.9rem;margin-bottom:4px;color:var(--saffron)}
+.refgrid ul{margin:0;padding-left:18px}
+.refgrid li{margin-bottom:3px}
+.refgrid em{color:var(--muted);font-style:normal;font-family:var(--mono);font-size:.78rem}
+
+section.block{display:flex;flex-direction:column;gap:10px}
+.block-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-bottom:2px solid var(--ink);padding-bottom:4px}
+.block-head h2{font-size:1.3rem;font-weight:800}
+.block-head .num{font-size:1.1rem;font-weight:700}
+
+.crit{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.crit-head{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.crit-head h3{font-family:var(--body);font-size:1rem;font-weight:700}
+.crit-head .hint{font-size:.82rem;color:var(--muted);font-weight:400}
+.val{font-family:var(--mono);font-weight:700;font-size:1rem;white-space:nowrap}
+.scale{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.st{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 2px;display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.15}
+.st b{font-size:.8rem}
+.st span{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.st.mid{border-style:dashed}
+.st:hover{border-color:var(--muted)}
+.st[data-c4="1"] b{color:var(--l1)} .st[data-c4="2"] b{color:var(--l2)} .st[data-c4="3"] b{color:var(--l3)} .st[data-c4="4"] b{color:var(--l4)}
+.st[aria-pressed="true"][data-c4="1"]{background:var(--l1);border-color:var(--l1)} .st[aria-pressed="true"][data-c4="2"]{background:var(--l2);border-color:var(--l2)}
+.st[aria-pressed="true"][data-c4="3"]{background:var(--l3);border-color:var(--l3)} .st[aria-pressed="true"][data-c4="4"]{background:var(--l4);border-color:var(--l4)}
+.st[aria-pressed="true"] b,.st[aria-pressed="true"] span{color:var(--bg)}
+.levels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+@media (max-width:640px){.levels{grid-template-columns:1fr 1fr}.scale{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.lv{text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:7px 9px;display:flex;flex-direction:column;gap:3px;font-size:.84rem;line-height:1.35}
+.lv .lh{font-weight:700;font-size:.74rem;text-transform:uppercase;letter-spacing:.05em}
+.lv:hover{border-color:var(--muted)}
+.lv[data-l="1"] .lh{color:var(--l1)} .lv[data-l="2"] .lh{color:var(--l2)} .lv[data-l="3"] .lh{color:var(--l3)} .lv[data-l="4"] .lh{color:var(--l4)}
+.lv[data-l="1"].on{background:var(--l1s);border-color:var(--l1)} .lv[data-l="2"].on{background:var(--l2s);border-color:var(--l2)}
+.lv[data-l="3"].on{background:var(--l3s);border-color:var(--l3)} .lv[data-l="4"].on{background:var(--l4s);border-color:var(--l4)}
+.lv.on.full{box-shadow:inset 0 0 0 1px currentColor}
+.lv.on:not(.full){border-style:dashed}
+
+.feedback{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.fb-col h3{font-size:.95rem;margin-bottom:6px}
+.fb-col ul{margin:0;padding-left:18px}
+.fb-col li{margin-bottom:4px}
+.fb-col.plus h3{color:var(--l3)} .fb-col.minus h3{color:var(--l1)}
+.empty{color:var(--muted);font-style:italic}
+
+.recap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.num{font-family:var(--mono)}
+td strong{font-family:var(--mono)}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-weight:600;z-index:20}
+.copybox{margin-top:8px}
+@media (prefers-reduced-motion:no-preference){.lv,.st,.btn,.stu-list button{transition:background .12s,border-color .12s}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Terminale LLCER AMC · Environnements en mutation</div>
+      <h1>Grille synthèse : New Delhi's water crisis</h1>
+    </div>
+    <p>Brouillon, introduction rédigée et plan détaillé. Cliquez un niveau par critère : les descripteurs donnent les repères, les crans intermédiaires (B1+, B2+…) permettent de nuancer. Niveau visé B2 = 17/20. Les données restent dans ce navigateur.</p>
+  </header>
+
+  <div class="scorebar" aria-live="polite">
+    <div class="scorebar-in">
+      <div class="who" id="who">Aucun élève</div>
+      <div class="chip"><span>Brouillon</span><b id="sb-b">0/10</b></div>
+      <div class="chip"><span>Introduction</span><b id="sb-i">0/10</b></div>
+      <div class="chip"><span>Plan</span><b id="sb-p">0/20</b></div>
+      <div class="chip"><span>Langue</span><b id="sb-l">0/20</b></div>
+      <div class="chip total"><span>Total</span><b id="sb-t">0/60</b></div>
+      <div class="chip cecrl"><span>Repère</span><b id="sb-c">·</b></div>
+      <div class="chip note"><span>Note</span><b id="sb-n">0/20</b></div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="side">
+      <div class="panel">
+        <h2>Élèves</h2>
+        <ul class="stu-list" id="stuList"></ul>
+        <div class="addrow">
+          <input type="text" id="newName" placeholder="NOM Prénom (comme dans Pronote)" aria-label="Nom et prénom de l'élève">
+          <button class="btn primary" id="addBtn">Ajouter</button>
+        </div>
+        <p class="small">Saisissez « NOM Prénom » comme dans Pronote. Vous pouvez coller toute la liste d'un coup (un élève par ligne, par exemple copiée depuis Pronote ou un tableur).</p>
+      </div>
+      <div class="panel">
+        <h2>Élève en cours</h2>
+        <div class="btnrow">
+          <button class="btn" id="resetBtn">Remettre à zéro</button>
+          <button class="btn danger" id="delBtn">Supprimer</button>
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <details class="ref">
+        <summary>Attendus du dossier (aide-mémoire correcteur)</summary>
+        <div class="refgrid" lang="en-GB">
+          <div>
+            <h3>Facts to spot</h3>
+            <ul>
+              <li>A heatwave leaves some 25 million people short of water <em>A l.10-11</em></li>
+              <li>Delhi ranks second among the world's most water-stressed cities (NITI Aayog, 2019) <em>B l.1-3</em></li>
+              <li>Industrial waste pollutes the Yamuna river <em>B l.5-6</em></li>
+              <li>Kusumpur Pahari: over 50,000 residents, no piped water, labelled an "illegal settlement" after three generations <em>A l.21-26</em></li>
+              <li>Rationing: water once a day instead of twice in South Delhi <em>B l.11-13</em></li>
+              <li>Rs 2,000 fines and a crackdown on water misuse by the DJB <em>B l.16-21</em></li>
+              <li>Political rows between states and an appeal to the Supreme Court <em>A l.13-17; B l.24-28</em></li>
+              <li>Crowds, jerrycans and mostly women queuing at a water tanker <em>C</em></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Implicit meaning</h3>
+            <ul>
+              <li>Water exposes social inequality: a slum wedged between glittering malls and upmarket enclaves, its residents working for the wealthy</li>
+              <li>A failure of governance: political rivalries between neighbouring states</li>
+              <li>Latent tension and violence ("People can kill you for water" <em>A l.30</em>)</li>
+              <li>Climate change aggravates a structural problem</li>
+              <li>Measures are reactive and come too late <em>B l.21-22</em></li>
+              <li>"Illegal" status amounts to a denial of rights; the burden of fetching water falls on women <em>C</em></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Specificities and possible outline</h3>
+            <ul>
+              <li>A: narrative report from <i>The New York Times</i>, an American outlook with a human focus</li>
+              <li>B: Indian business daily, explanatory and solution-oriented</li>
+              <li>C: Reuters photograph, visual testimony with tight framing</li>
+              <li>I. A crisis with multiple causes (climate, demand, pollution)</li>
+              <li>II. A population unequally affected (the poor, daily struggle, tensions)</li>
+              <li>III. Authorities facing governance challenges (rationing, fines, inter-state cooperation)</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Synthesis vocabulary (Vocab Hub)</h3>
+            <ul>
+              <li><b>Naming:</b> a headline, a caption, an excerpt, a broadsheet</li>
+              <li><b>Reporting:</b> to state, to report, to point out, to claim, to quote, to highlight, to emphasise, to warn</li>
+              <li><b>Implicit meaning:</b> to imply, to hint at, to reveal, to convey, a paradox</li>
+              <li><b>Viewpoint:</b> balanced, one-sided, alarmist, critical of, sympathetic to</li>
+              <li><b>Introduction:</b> in an age of, a burning issue, to be at stake, a set of documents, to deal with, to range from… to…, to give voice to, to what extent, whether, to shed light on, to tackle, to address</li>
+              <li><b>Linking words:</b> moreover, however, whereas, while, likewise, as a result, in stark contrast</li>
+              <li><b>Theme:</b> water scarcity, a shortage, rationing, a slum, the water table, governance, to ration, a heatwave</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+
+      <div id="blocks"></div>
+
+      <section class="block">
+        <div class="block-head"><h2>Retour à l'élève</h2></div>
+        <div class="crit">
+          <div class="feedback">
+            <div class="fb-col plus"><h3>Points forts</h3><ul id="fbPlus"></ul></div>
+            <div class="fb-col minus"><h3>Priorités de travail</h3><ul id="fbMinus"></ul></div>
+          </div>
+          <label for="comment" class="small">Conseils additionnels (affichés sur le bilan PDF)</label>
+          <textarea id="comment" placeholder="Ex. : Très bon repérage de l'implicite, mais le plan suit encore l'ordre des documents."></textarea>
+          <div class="btnrow"><button class="btn primary" id="pdfOne">Télécharger le bilan PDF</button><button class="btn" id="copyFb">Copier le retour</button></div>
+        </div>
+      </section>
+
+      <section class="block">
+        <div class="block-head"><h2>Récapitulatif de la classe</h2><span class="small" id="avg"></span></div>
+        <div class="crit">
+          <div class="recap"><table id="recap"></table></div>
+          <div class="btnrow"><button class="btn primary" id="pdfAll">Tous les bilans PDF (un fichier par élève, en ZIP)</button><button class="btn primary" id="pronoteCopy">Copier les notes pour Pronote</button><button class="btn" id="pronoteFile">Fichier de notes Pronote (.csv)</button></div>
+          <p class="small">Pronote client : <b>Notes › Saisie</b>, sélectionnez le devoir, puis <b>Ctrl + V</b> (ou <b>Éditer › Importer les données depuis le presse-papier</b>). Séparateur : tabulation pour le copier, point-virgule pour le .csv. Associez les colonnes à Nom, Prénom et Note, et cochez « ignorer la ligne d'en-tête ». Les élèves sans aucune note saisie ont une case vide.</p>
+          <div class="btnrow" hidden></div>
+          <textarea id="copyFallback" class="copybox" hidden readonly aria-label="Texte à copier"></textarea>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+const ANCH = ["A2","B1","B2","C1"];
+const STEPS = [{lab:"A2",a:0},{lab:"A2/B1",m:0},{lab:"B1",a:1},{lab:"B1+",m:1},{lab:"B2",a:2},{lab:"B2+",m:2},{lab:"C1",a:3}];
+/* Barème calé sur : B1 ≈ 12/20, B2 = 17/20, C1 = 20/20 */
+const P3=[1,1.75,2.5,3],P4=[1.25,2.5,3.5,4],P5=[1.5,3,4.25,5],P6=[1.75,3.5,5,6];
+const BLOCKS = [
+ {id:"b",title:"Brouillon",max:10,crits:[
+  {id:"b1",title:"Repérage des faits",hint:"explicite, références",pts:P3,d:[
+   "Relevé très partiel : un seul document exploité, ou recopiage.",
+   "Relevé incomplet : des faits essentiels manquent ou un document est négligé ; références rares.",
+   "L'essentiel des faits est relevé dans les trois documents, le plus souvent avec références.",
+   "Relevé complet, sélectif et systématiquement référencé ; chaque document, image comprise, exploité à part entière."],
+   plus:"Repérage des faits précis et référencé.",minus:"Relever les faits essentiels des trois documents, avec les références de lignes (y compris la photo)."},
+  {id:"b2",title:"Repérage de l'implicite",hint:"déductions justifiées",pts:P3,d:[
+   "Pas de distinction entre faits et implicite.",
+   "Quelques déductions, peu justifiées ou mêlées aux faits.",
+   "L'implicite est identifié pour la plupart des documents et appuyé sur des indices.",
+   "Lecture fine et nuancée de l'implicite, y compris le point de vue de chaque source."],
+   plus:"Bonne lecture de l'implicite, appuyée sur des indices.",minus:"Distinguer clairement faits et implicite, et justifier chaque déduction par un indice du document."},
+  {id:"b3",title:"Organisation du brouillon",hint:"tableau thématique croisé",pts:P4,d:[
+   "Notes en vrac ou recopiage.",
+   "Organisation document par document.",
+   "Organisation par thèmes, croisements amorcés.",
+   "Thèmes clairs, convergences et divergences repérées, plan déjà visible."],
+   plus:"Brouillon organisé par thèmes, qui prépare efficacement le plan.",minus:"Organiser le brouillon par thèmes (et non document par document) pour faire apparaître les croisements."}
+ ]},
+ {id:"i",title:"Introduction",max:10,crits:[
+  {id:"i1",title:"Respect de la méthode",hint:"accroche, présentation du corpus",pts:P4,d:[
+   "Accroche et présentation du corpus absentes ou hors sujet.",
+   "L'un des deux éléments manque ou reste vague.",
+   "Accroche liée au sujet ; corpus présenté avec l'essentiel (nature, sources, dates).",
+   "Accroche efficace et contextualisée ; corpus présenté avec précision, points de vue compris."],
+   plus:"Introduction méthodique : accroche pertinente et corpus bien présenté.",minus:"Présenter le corpus avec précision : nature des documents, sources, dates, points de vue."},
+  {id:"i2",title:"Problématique",hint:"pertinence, bonne échelle",pts:P3,d:[
+   "Absente, ou consigne recopiée mot pour mot.",
+   "Hors sujet ou trop vague, ou au contraire trop précise (elle récite déjà le plan) ; construction fautive.",
+   "Pertinente et liée à la consigne (population et autorités), clairement formulée.",
+   "Ouverte et à la bonne échelle : assez large pour être développée, sans anticiper les idées du plan ; formulation fluide."],
+   plus:"Problématique pertinente, à la bonne échelle : elle ouvre la réflexion sans dévoiler le plan.",minus:"Trouver la bonne échelle pour la problématique : assez large pour être développée, sans annoncer déjà le contenu du plan."},
+  {id:"i3",title:"Annonce du plan",hint:"axes clairs et articulés",pts:P3,d:[
+   "Absente.",
+   "Présente mais floue, ou sans lien avec la problématique.",
+   "Claire et cohérente avec la problématique.",
+   "Fluide, progressive, parfaitement articulée à la problématique."],
+   plus:"Annonce de plan claire et bien articulée.",minus:"Annoncer clairement les axes du plan, en lien direct avec la problématique."}
+ ]},
+ {id:"p",title:"Plan détaillé",max:20,crits:[
+  {id:"p1",title:"Titres de parties",hint:"formulés comme des idées",pts:P4,d:[
+   "Absents, ou réduits à un mot.",
+   "Plutôt descriptifs : des thèmes ou des documents plus que des idées.",
+   "Clairs, la plupart formulés comme des idées qui répondent à la consigne.",
+   "Tous formulés comme des idées, percutants et progressifs."],
+   plus:"Titres de parties efficaces, formulés comme des idées.",minus:"Formuler des titres de parties qui sont des idées (pas des thèmes ni des documents)."},
+  {id:"p2",title:"Croisement des documents",hint:"compare and contrast, 10 lignes max par partie",pts:P6,d:[
+   "Résumé document par document.",
+   "Juxtaposition : peu de mises en relation entre les documents.",
+   "La plupart des parties croisent plusieurs documents ; idées principales présentes ; concision globalement respectée.",
+   "Compare and contrast systématique, convergences et divergences exploitées, straight to the point."],
+   plus:"Documents bien croisés, avec un vrai « compare and contrast ».",minus:"Croiser au moins deux documents dans chaque partie et montrer convergences et divergences, en 10 lignes maximum."},
+  {id:"p3",title:"Analyse du dossier",hint:"enjeux, implicite, spécificités des sources",pts:P5,d:[
+   "Contresens, ou idées essentielles absentes.",
+   "Compréhension surtout littérale.",
+   "Enjeux principaux compris, implicite exploité dans l'ensemble.",
+   "Analyse fine, spécificités des sources prises en compte."],
+   plus:"Analyse juste des enjeux du dossier.",minus:"Dépasser le relevé littéral : exploiter l'implicite et les spécificités de chaque source."},
+  {id:"p4",title:"Organisation des idées",hint:"progression, équilibre",pts:P5,d:[
+   "Idées en désordre, répétitions.",
+   "Organisation perceptible mais déséquilibrée ou redondante.",
+   "Progression logique, parties globalement équilibrées.",
+   "Progression rigoureuse, chaque idée à sa place."],
+   plus:"Plan bien construit et progressif.",minus:"Équilibrer les parties et éviter les redites : chaque idée doit avoir une seule place."}
+ ]},
+ {id:"l",title:"Langue (B2 visé)",max:20,crits:[
+  {id:"l1",title:"Lexique thématique",hint:"eau, ville, inégalités, gouvernance",pts:P4,d:[
+   "Lexique très limité, mots français ou gallicismes nombreux.",
+   "Lexique courant, imprécisions et faux amis fréquents.",
+   "Lexique du thème réemployé assez souvent et à bon escient ; imprécisions ponctuelles.",
+   "Lexique riche, précis et varié, collocations maîtrisées."],
+   plus:"Lexique du thème précis et bien réemployé.",minus:"Réemployer le lexique du thème et traquer les gallicismes et faux amis."},
+  {id:"l3",title:"Vocabulaire de la synthèse",hint:"Spot et Intro Vocab Labs",pts:P4,d:[
+   "Aucun vocabulaire méthodologique (« the text », « the photo »).",
+   "Quelques termes, répétitifs (say, show) ou parfois mal employés.",
+   "Vocabulaire des labs réemployé régulièrement et à bon escient.",
+   "Vocabulaire méthodologique varié et précis, verbes introducteurs nuancés, pièges évités."],
+   plus:"Bon réemploi du vocabulaire de la synthèse (Spot et Intro Vocab Labs).",minus:"Réviser les Spot et Intro Vocab Labs et varier les verbes introducteurs au lieu de say et show."},
+  {id:"l4",title:"Enchaînement des idées",hint:"mots de liaison",pts:P4,d:[
+   "Idées juxtaposées, sans connecteurs.",
+   "Connecteurs simples et répétés, parfois mal employés.",
+   "Connecteurs variés et le plus souvent justes.",
+   "Articulation fluide ; connecteurs de comparaison au service du compare and contrast."],
+   plus:"Idées bien enchaînées, connecteurs variés et justes.",minus:"Varier les mots de liaison, en particulier ceux du compare and contrast (whereas, while, likewise, in contrast)."},
+  {id:"l2",title:"Grammaire",hint:"accords, temps, déterminants",pts:P4,d:[
+   "Erreurs nombreuses qui gênent la compréhension.",
+   "Erreurs fréquentes sur les bases.",
+   "Erreurs ponctuelles qui ne gênent pas la compréhension.",
+   "Grande correction, erreurs rares."],
+   plus:"Bonne correction grammaticale.",minus:"Consolider les bases : accords sujet/verbe, -s du pluriel, temps, déterminants."},
+  {id:"l5",title:"Syntaxe",hint:"construction des phrases, ordre des mots",pts:P4,d:[
+   "Phrases mal construites, calques du français, ordre des mots fautif.",
+   "Phrases simples correctes ; structures complexes souvent fautives.",
+   "Phrases variées ; plusieurs structures complexes maîtrisées.",
+   "Syntaxe souple et variée, structures complexes maîtrisées, ponctuation sûre."],
+   plus:"Syntaxe variée et maîtrisée.",minus:"Travailler la construction des phrases : ordre des mots, question indirecte sans inversion, relatives, éviter les calques du français."}
+ ]}
+];
+const CRITS = BLOCKS.flatMap(b=>b.crits.map(c=>({...c,block:b.id})));
+const KEY="grille-synthese-delhi-v2";
+let state;
+function uid(){return Math.random().toString(36).slice(2,10);}
+function load(){
+  try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.students))return s;}catch(e){}
+  const ex={id:uid(),name:"EXEMPLE Élève (à supprimer)",comment:"",scores:{b1:4,b2:3,b3:2,i1:4,i2:5,i3:4,p1:3,p2:2,p3:4,p4:4,l1:4,l3:3,l4:4,l2:3,l5:3}};
+  return {students:[ex],current:ex.id};
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function cur(){return state.students.find(s=>s.id===state.current)||null;}
+function stepPts(c,i){const s=STEPS[i];return s.a!==undefined?c.pts[s.a]:Math.round((c.pts[s.m]+c.pts[s.m+1])*2)/4;}
+function critScore(st,c){const v=st.scores[c.id];return (v===undefined||v===null)?0:stepPts(c,v);}
+function totals(st){const t={};let all=0;for(const b of BLOCKS){t[b.id]=b.crits.reduce((a,c)=>a+critScore(st,c),0);all+=t[b.id];}t.total=all;t.note=Math.round(all/60*20*2)/2;return t;}
+function repere(n){return n>=19.5?"C1":n>=18?"B2+":n>=16.5?"B2":n>=13.5?"B1+":n>=10.5?"B1":n>0?"A2":"·";}
+const fmt=n=>(Math.round(n*100)/100).toString().replace(".",",");
+const c4=i=>Math.min(4,Math.floor(i/2)+1);
+
+function renderBlocks(){
+  const host=document.getElementById("blocks");host.innerHTML="";
+  for(const b of BLOCKS){
+    const sec=document.createElement("section");sec.className="block";
+    sec.innerHTML=`<div class="block-head"><h2>${b.title}</h2><span class="num" id="bt-${b.id}">0/${b.max}</span></div>`;
+    for(const c of b.crits){
+      const d=document.createElement("div");d.className="crit";
+      d.innerHTML=`<div class="crit-head"><h3>${c.title} <span class="hint">· ${c.hint}</span></h3><span class="val" id="v-${c.id}">0/${fmt(c.pts[3])}</span></div>
+        <div class="scale" role="group" aria-label="Niveau : ${c.title}">${STEPS.map((s,i)=>`<button type="button" class="st${s.m!==undefined?" mid":""}" data-c="${c.id}" data-i="${i}" data-c4="${c4(i)}" aria-pressed="false"><b>${s.lab}</b><span>${fmt(stepPts(c,i))}</span></button>`).join("")}</div>
+        <div class="levels">${c.d.map((t,i)=>`<button type="button" class="lv" data-l="${i+1}" data-c="${c.id}"><span class="lh">${ANCH[i]}</span>${t}</button>`).join("")}</div>`;
+      sec.appendChild(d);
+    }
+    host.appendChild(sec);
+  }
+}
+function render(){
+  const st=cur();
+  const ul=document.getElementById("stuList");ul.innerHTML="";
+  state.students.forEach(s=>{const li=document.createElement("li");const t=totals(s);
+    li.innerHTML=`<button type="button" data-s="${s.id}" aria-current="${s.id===state.current}"><span class="n"></span><span class="s">${fmt(t.note)}</span></button>`;
+    li.querySelector(".n").textContent=s.name;ul.appendChild(li);});
+  document.getElementById("who").textContent=st?st.name:"Aucun élève";
+  const t=st?totals(st):{b:0,i:0,p:0,l:0,total:0,note:0};
+  for(const b of BLOCKS){document.getElementById("sb-"+b.id).textContent=`${fmt(t[b.id])}/${b.max}`;document.getElementById("bt-"+b.id).textContent=`${fmt(t[b.id])}/${b.max}`;}
+  document.getElementById("sb-t").textContent=`${fmt(t.total)}/60`;
+  document.getElementById("sb-n").textContent=`${fmt(t.note)}/20`;
+  document.getElementById("sb-c").textContent=repere(t.note);
+  for(const c of CRITS){
+    const v=st?st.scores[c.id]:undefined;const has=v!==undefined&&v!==null;
+    document.getElementById("v-"+c.id).textContent=`${fmt(st?critScore(st,c):0)}/${fmt(c.pts[3])}`;
+    document.querySelectorAll(`.st[data-c="${c.id}"]`).forEach(b=>b.setAttribute("aria-pressed",String(has&&+b.dataset.i===v)));
+    const on=has?(STEPS[v].a!==undefined?[STEPS[v].a]:[STEPS[v].m,STEPS[v].m+1]):[];
+    document.querySelectorAll(`.lv[data-c="${c.id}"]`).forEach(b=>{const k=+b.dataset.l-1;b.classList.toggle("on",on.includes(k));b.classList.toggle("full",on.length===1);});
+  }
+  const plus=[],minus=[];
+  if(st)for(const c of CRITS){const v=st.scores[c.id];if(v===undefined||v===null)continue;if(v>=4)plus.push(c.plus);else minus.push(c.minus);}
+  document.getElementById("fbPlus").innerHTML=plus.length?plus.map(x=>`<li>${x}</li>`).join(""):'<li class="empty">Sélectionnez des niveaux pour générer le retour.</li>';
+  document.getElementById("fbMinus").innerHTML=minus.length?minus.map(x=>`<li>${x}</li>`).join(""):'<li class="empty">Aucune priorité pour l\'instant.</li>';
+  const ta=document.getElementById("comment");if(document.activeElement!==ta)ta.value=st?st.comment||"":"";
+  ta.disabled=!st;
+  renderRecap();
+}
+function esc(s){return s.replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));}
+function renderRecap(){
+  const head=`<tr><th>Élève</th><th>Brouillon /10</th><th>Intro /10</th><th>Plan /20</th><th>Langue /20</th><th>Total /60</th><th>Note /20</th></tr>`;
+  let sum=0;const rows=state.students.map(s=>{const t=totals(s);sum+=t.note;return `<tr><td>${esc(s.name)}</td><td class="num">${fmt(t.b)}</td><td class="num">${fmt(t.i)}</td><td class="num">${fmt(t.p)}</td><td class="num">${fmt(t.l)}</td><td class="num">${fmt(t.total)}</td><td><strong>${fmt(t.note)}</strong></td></tr>`;}).join("");
+  document.getElementById("recap").innerHTML=head+rows;
+  document.getElementById("avg").textContent=state.students.length?`Moyenne : ${fmt(Math.round(sum/state.students.length*10)/10)}/20 · ${state.students.length} copie(s)`:"";
+}
+function setStep(cid,i){const st=cur();if(!st)return toast("Ajoutez d'abord un élève.");st.scores[cid]=(st.scores[cid]===i)?null:i;save();render();}
+document.addEventListener("click",e=>{
+  const s=e.target.closest(".st");const lv=e.target.closest(".lv");const sb=e.target.closest("[data-s]");
+  if(s)setStep(s.dataset.c,+s.dataset.i);
+  else if(lv)setStep(lv.dataset.c,(+lv.dataset.l-1)*2);
+  else if(sb){state.current=sb.dataset.s;disarm();save();render();}
+});
+function addNames(){const inp=document.getElementById("newName");const names=inp.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);if(!names.length)return;
+  let last;for(const n of names){last={id:uid(),name:n,comment:"",scores:{}};state.students.push(last);}state.current=last.id;inp.value="";save();render();}
+document.getElementById("addBtn").onclick=addNames;
+document.getElementById("newName").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addNames();}});
+document.getElementById("newName").addEventListener("paste",e=>{const t=e.clipboardData?e.clipboardData.getData("text"):"";if(t&&t.includes("\n")){e.preventDefault();e.target.value=t;addNames();}});
+document.getElementById("resetBtn").onclick=()=>{const st=cur();if(!st)return;st.scores={};st.comment="";save();render();toast("Grille remise à zéro.");};
+const del=document.getElementById("delBtn");let armed=false;
+function disarm(){armed=false;del.classList.remove("armed");del.textContent="Supprimer";}
+del.onclick=()=>{const st=cur();if(!st)return;if(!armed){armed=true;del.classList.add("armed");del.textContent="Confirmer la suppression";return;}
+  state.students=state.students.filter(s=>s.id!==st.id);state.current=state.students[0]?state.students[0].id:null;disarm();save();render();toast("Élève supprimé.");};
+document.getElementById("comment").addEventListener("input",e=>{const st=cur();if(!st)return;st.comment=e.target.value;save();});
+function copyText(txt,msg){
+  const fb=document.getElementById("copyFallback");
+  const done=()=>{fb.hidden=true;toast(msg);};
+  const fail=()=>{fb.hidden=false;fb.value=txt;fb.focus();fb.select();toast("Copie bloquée : texte sélectionné ci-dessous, faites Ctrl+C.");};
+  try{navigator.clipboard.writeText(txt).then(done,fail);}catch(e){fail();}
+}
+document.getElementById("copyFb").onclick=()=>{const st=cur();if(!st)return;const t=totals(st);
+  const plus=[...document.querySelectorAll("#fbPlus li:not(.empty)")].map(l=>"+ "+l.textContent);
+  const minus=[...document.querySelectorAll("#fbMinus li:not(.empty)")].map(l=>"> "+l.textContent);
+  const txt=[`${st.name} : ${fmt(t.note)}/20`,`Brouillon ${fmt(t.b)}/10 · Introduction ${fmt(t.i)}/10 · Plan ${fmt(t.p)}/20 · Langue ${fmt(t.l)}/20`,
+    plus.length?"Points forts :\n"+plus.join("\n"):"",minus.length?"Priorités :\n"+minus.join("\n"):"",st.comment||""].filter(Boolean).join("\n\n");
+  copyText(txt,"Retour copié.");};
+/* Export Pronote : Nom, Prénom, Note finale /20 */
+function splitName(raw){
+  const n=raw.replace(/\s+$/,"");
+  if(/\t|;/.test(n)){const [a,...b]=n.split(/\t|;/);return [a.trim(),b.join(" ").trim()];}
+  const w=n.trim().split(/\s+/);let i=0;
+  while(i<w.length&&/[A-ZÀ-Ý]/.test(w[i])&&w[i]===w[i].toLocaleUpperCase("fr")&&w[i].replace(/[^A-Za-zÀ-ÿ]/g,"").length>1)i++;
+  if(i===0||i===w.length)i=1;
+  return [w.slice(0,i).join(" "),w.slice(i).join(" ")];
+}
+const hasNote=s=>CRITS.some(c=>s.scores[c.id]!==undefined&&s.scores[c.id]!==null);
+function pronoteRows(sep){
+  const rows=[["Nom","Prénom","Note"].join(sep)];
+  state.students.forEach(s=>{const [nom,pre]=splitName(s.name);rows.push([nom,pre,hasNote(s)?fmt(totals(s).note):""].join(sep));});
+  return rows;
+}
+document.getElementById("pronoteCopy").onclick=()=>{if(!state.students.length)return;copyText(pronoteRows("\t").join("\r\n"),"Notes copiées : collez-les dans Pronote (Ctrl + V).");};
+document.getElementById("pronoteFile").onclick=()=>{if(!state.students.length)return;
+  saveBlob(new Blob(["\ufeff"+pronoteRows(";").join("\r\n")],{type:"text/csv;charset=utf-8"}),"notes-pronote-synthese-delhi.csv","Fichier Pronote enregistré.");};
+let tt;function toast(m){const el=document.getElementById("toast");el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2200);}
+/* ===== PDF élève (A4, une page) ===== */
+let DL=null;
+(async()=>{try{if(window.claude&&claude.use)DL=await claude.use("downloads");}catch(e){DL=null;}})();
+const RGB={teal:[13,106,135],tealSoft:[223,240,246],saffron:[185,105,15],saffSoft:[251,239,223],ink:[19,34,44],muted:[90,106,116],line:[214,224,229],bg:[243,246,247],
+  l1:[178,64,47],l2:[185,105,15],l3:[44,122,82],l4:[13,106,135],l3s:[225,242,232],l1s:[248,227,223]};
+const LVC=i=>RGB["l"+c4(i)];
+function pdfPage(doc,st){
+  const W=210,M=12,t=totals(st);
+  const fill=c=>doc.setFillColor(...c),stroke=c=>doc.setDrawColor(...c),col=c=>doc.setTextColor(...c);
+  const font=(s,w)=>{doc.setFont("helvetica",w||"normal");doc.setFontSize(s);};
+  // bandeau
+  fill(RGB.teal);doc.rect(0,0,W,30,"F");
+  fill(RGB.saffron);doc.rect(0,30,W,1.6,"F");
+  col([255,255,255]);font(7.5,"bold");doc.text("LLCER AMC  ·  SYNTHÈSE  ·  ENVIRONNEMENTS EN MUTATION",M,10);
+  font(19,"bold");doc.text("New Delhi's water crisis",M,20);
+  font(8.5);doc.text("Brouillon, introduction et plan détaillé",M,26);
+  font(13,"bold");const nm=doc.splitTextToSize(st.name,70)[0];doc.text(nm,W-M,18,{align:"right"});
+  font(8);doc.text("Bilan personnel",W-M,24,{align:"right"});
+  // note
+  let y=36;
+  fill(RGB.saffSoft);doc.roundedRect(M,y,186,30,3,3,"F");
+  fill(RGB.teal);doc.circle(M+16,y+15,12,"F");
+  col([255,255,255]);font(17,"bold");doc.text(fmt(t.note),M+16,y+16.5,{align:"center"});
+  font(7,"bold");doc.text("/ 20",M+16,y+21.5,{align:"center"});
+  const rp=repere(t.note);fill(RGB.saffron);doc.roundedRect(M+33,y+6,22,8,2,2,"F");
+  col([255,255,255]);font(9,"bold");doc.text(rp,M+44,y+11.5,{align:"center"});
+  col(RGB.muted);font(6.5);doc.text("Repère CECRL",M+44,y+19,{align:"center"});doc.text("(visé : B2)",M+44,y+22.5,{align:"center"});
+  // barres
+  let bx=M+62,by=y+5;
+  BLOCKS.forEach((b,k)=>{const yy=by+k*5.6;col(RGB.ink);font(7.5,"bold");doc.text(b.title.replace(" (B2 visé)",""),bx,yy+2.6);
+    fill(RGB.line);doc.roundedRect(bx+26,yy,72,3.2,1.6,1.6,"F");
+    const r=t[b.id]/b.max;if(r>0){fill(RGB.teal);doc.roundedRect(bx+26,yy,Math.max(3.2,72*r),3.2,1.6,1.6,"F");}
+    col(RGB.ink);font(7.5,"bold");doc.text(`${fmt(t[b.id])}/${b.max}`,bx+118,yy+2.6,{align:"right"});});
+  // détail par critère, deux colonnes
+  y=72;const colW=90,cols=[[BLOCKS[0],BLOCKS[2]],[BLOCKS[1],BLOCKS[3]]];
+  cols.forEach((list,ci)=>{let x=M+ci*(colW+6),yy=y;
+    list.forEach(b=>{const h=9+b.crits.length*8.6;
+      stroke(RGB.line);doc.setLineWidth(.3);doc.roundedRect(x,yy,colW,h,2.5,2.5,"S");
+      fill(RGB.bg);doc.roundedRect(x,yy,colW,7,2.5,2.5,"F");doc.rect(x,yy+4,colW,3,"F");
+      col(RGB.teal);font(8.5,"bold");doc.text(b.title.toUpperCase(),x+3,yy+4.9);
+      col(RGB.muted);font(6);["A2","B1","B2","C1"].forEach((l,i)=>doc.text(l,x+40+i*2*4.4,yy+4.9,{align:"center"}));
+      col(RGB.ink);font(8.5,"bold");doc.text(`${fmt(t[b.id])}/${b.max}`,x+colW-3,yy+4.9,{align:"right"});
+      let ry=yy+9;
+      b.crits.forEach(c=>{const v=st.scores[c.id];const has=v!==undefined&&v!==null;
+        col(RGB.ink);font(7,"bold");doc.text(doc.splitTextToSize(c.title,35)[0],x+3,ry+3);
+        col(RGB.muted);font(5.8);doc.text(doc.splitTextToSize(c.hint,35)[0],x+3,ry+6.2);
+        for(let i=0;i<7;i++){const cx=x+40+i*4.4,cy=ry+3.6,r=STEPS[i].a!==undefined?1.5:1.05;
+          if(has&&i<=v){fill(has&&i===v?LVC(v):RGB.tealSoft);}else fill(RGB.line);
+          doc.circle(cx,cy,has&&i===v?2.1:r,"F");}
+        if(has){col(LVC(v));font(6.5,"bold");doc.text(STEPS[v].lab,x+colW-14,ry+4.3,{align:"right"});}
+        col(RGB.ink);font(7.4,"bold");doc.text(`${fmt(has?critScore(st,c):0)}/${fmt(c.pts[3])}`,x+colW-3,ry+4.3,{align:"right"});
+        ry+=8.6;});
+      yy+=h+4;});
+  });
+  // retours
+  y=72+2*9+8*8.6+4+6; // sous la colonne la plus haute
+  const sc=CRITS.filter(c=>st.scores[c.id]!==undefined&&st.scores[c.id]!==null).map(c=>({c,v:st.scores[c.id],r:critScore(st,c)/c.pts[3]}));
+  const plus=sc.filter(o=>o.v>=4).sort((a,b)=>b.r-a.r).slice(0,4).map(o=>o.c.plus);
+  const minus=sc.filter(o=>o.v<4).sort((a,b)=>(b.c.pts[3]-critScore(st,b.c))-(a.c.pts[3]-critScore(st,a.c))).slice(0,4).map(o=>o.c.minus);
+  const box=(x,title,items,cMain,cSoft)=>{fill(cSoft);doc.roundedRect(x,y,colW,52,2.5,2.5,"F");fill(cMain);doc.rect(x,y+3,1.4,46,"F");
+    col(cMain);font(9,"bold");doc.text(title,x+5,y+7);
+    let yy=y+12.5;font(7.6);col(RGB.ink);
+    (items.length?items:["Rien à signaler ici pour cette fois."]).forEach(t=>{const ls=doc.splitTextToSize(t,colW-12);if(yy+ls.length*3.3>y+51)return;
+      fill(cMain);doc.circle(x+6,yy-1,.8,"F");doc.text(ls,x+8.5,yy);yy+=ls.length*3.3+1.6;});};
+  box(M,"Points forts",plus,RGB.l3,RGB.l3s);
+  box(M+colW+6,"Priorités de travail",minus,RGB.l1,RGB.l1s);
+  y+=56;
+  // objectif
+  let goal=null;
+  sc.filter(o=>o.v<6).forEach(o=>{const target=o.v<4?4:6;const gain=stepPts(o.c,target)-o.r*o.c.pts[3];if(!goal||gain>goal.gain)goal={c:o.c,from:o.v,to:target,gain};});
+  fill(RGB.teal);doc.roundedRect(M,y,186,12,2.5,2.5,"F");col([255,255,255]);font(8,"bold");doc.text("PROCHAIN OBJECTIF",M+4,y+7.3);
+  font(8.4);const gtxt=goal?`${goal.c.title} : passer de ${STEPS[goal.from].lab} à ${STEPS[goal.to].lab}, soit jusqu'à +${fmt(goal.gain)} pt sur la copie.`:"Continuer sur cette lancée et viser la même exigence au prochain devoir.";
+  doc.text(doc.splitTextToSize(gtxt,148)[0],M+36,y+7.3);
+  y+=16;
+  // commentaire
+  const cm=(st.comment||"").trim();
+  stroke(RGB.saffron);doc.setLineWidth(.5);doc.roundedRect(M,y,186,285-y-6,2.5,2.5,"S");
+  col(RGB.saffron);font(8.5,"bold");doc.text("Conseils additionnels",M+4,y+6);
+  col(RGB.ink);let fs=8.5,ls;do{font(fs);ls=doc.splitTextToSize(cm||" ",178);fs-=.5;}while(ls.length*(fs+.5)*.41>285-y-16&&fs>6);
+  doc.text(ls,M+4,y+11.5);
+  // pied
+  col(RGB.muted);font(6.5);doc.text(`Brouillon ${fmt(t.b)}/10  ·  Introduction ${fmt(t.i)}/10  ·  Plan ${fmt(t.p)}/20  ·  Langue ${fmt(t.l)}/20  ·  Total ${fmt(t.total)}/60`,W/2,291,{align:"center"});
+}
+function makePdf(list){
+  if(!window.jspdf){toast("Le module PDF n'est pas chargé, vérifiez la connexion.");return null;}
+  const doc=new jspdf.jsPDF({unit:"mm",format:"a4"});
+  list.forEach((st,i)=>{if(i)doc.addPage();pdfPage(doc,st);});return doc;
+}
+const slug=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"")||"eleve";
+async function saveBlob(blob,filename,msg){
+  if(DL){try{await DL.save({filename,data:blob});toast(msg);return;}
+    catch(e){if(e&&e.code==="declined")return;if(e&&e.code==="rate_limited")return toast("Une demande est déjà ouverte.");}}
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);toast(msg);
+}
+function offerPdf(doc,filename){return saveBlob(doc.output("blob"),filename,"PDF enregistré.");}
+document.getElementById("pdfOne").onclick=()=>{const st=cur();if(!st)return toast("Ajoutez d'abord un élève.");const d=makePdf([st]);if(d)offerPdf(d,`bilan-synthese-delhi-${slug(st.name)}.pdf`);};
+document.getElementById("pdfAll").onclick=async()=>{
+  const list=state.students.filter(hasNote);if(!list.length)return toast("Aucune copie notée pour l'instant.");
+  if(!window.JSZip)return toast("Le module ZIP n'est pas chargé, vérifiez la connexion.");
+  toast(`Préparation de ${list.length} bilan(s)…`);
+  const zip=new JSZip();const used={};
+  for(const st of list){const d=makePdf([st]);if(!d)return;let f=`bilan-${slug(st.name)}`;used[f]=(used[f]||0)+1;if(used[f]>1)f+=`-${used[f]}`;zip.file(f+".pdf",d.output("arraybuffer"));}
+  const blob=await zip.generateAsync({type:"blob"});
+  saveBlob(blob,"bilans-synthese-delhi.zip",`${list.length} bilans PDF enregistrés (ZIP).`);};
+
+state=load();renderBlocks();render();
+</script>
