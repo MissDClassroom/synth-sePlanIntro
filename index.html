@@ -22,6 +22,7 @@
   --l1:#f08877; --l1s:#3b1f1a; --l2:#f0a54c; --l2s:#3a2a15; --l3:#6ccf97; --l3s:#16301f; --l4:#5cc0de; --l4s:#163543;
   color-scheme:dark}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
 .wrap{max-width:1280px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
@@ -111,6 +112,9 @@ section.block{display:flex;flex-direction:column;gap:10px}
 .lv.on.full{box-shadow:inset 0 0 0 1px currentColor}
 .lv.on:not(.full){border-style:dashed}
 
+.just{margin:0;font-size:.82rem;color:var(--muted);background:var(--bg);border-left:3px solid var(--saffron);padding:5px 9px;border-radius:0 6px 6px 0}
+.just b{color:var(--saffron)}
+.doubts{background:var(--saffron-soft);border:1px solid var(--saffron);border-radius:10px;padding:10px 12px;font-size:.88rem}
 .feedback{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
 .fb-col h3{font-size:.95rem;margin-bottom:6px}
 .fb-col ul{margin:0;padding-left:18px}
@@ -165,10 +169,18 @@ td strong{font-family:var(--mono)}
       </div>
       <div class="panel">
         <h2>Élève en cours</h2>
+        <label for="curName" class="small">Nom affiché (NOM Prénom)</label>
+        <input type="text" id="curName" style="margin-block:4px 10px">
         <div class="btnrow">
           <button class="btn" id="resetBtn">Remettre à zéro</button>
           <button class="btn danger" id="delBtn">Supprimer</button>
         </div>
+      </div>
+      <div class="panel">
+        <h2>Importer des propositions</h2>
+        <p class="small">Collez ici le bloc de propositions fourni par Claude, puis importez. Chaque copie se retrouve avec ses niveaux, ses conseils et les justifications, à relire et ajuster.</p>
+        <textarea id="importBox" placeholder='{"copies":[…]}' aria-label="Propositions à importer" style="min-height:70px;font-family:var(--mono);font-size:.78rem"></textarea>
+        <div class="btnrow" style="margin-top:6px"><button class="btn primary" id="importBtn">Importer</button></div>
       </div>
     </aside>
 
@@ -231,6 +243,7 @@ td strong{font-family:var(--mono)}
       <section class="block">
         <div class="block-head"><h2>Retour à l'élève</h2></div>
         <div class="crit">
+          <div class="doubts" id="doubts" hidden></div>
           <div class="feedback">
             <div class="fb-col plus"><h3>Points forts</h3><ul id="fbPlus"></ul></div>
             <div class="fb-col minus"><h3>Priorités de travail</h3><ul id="fbMinus"></ul></div>
@@ -390,7 +403,8 @@ function renderBlocks(){
       const d=document.createElement("div");d.className="crit";
       d.innerHTML=`<div class="crit-head"><h3>${c.title} <span class="hint">· ${c.hint}</span></h3><span class="val" id="v-${c.id}">0/${fmt(c.pts[3])}</span></div>
         <div class="scale" role="group" aria-label="Niveau : ${c.title}">${STEPS.map((s,i)=>`<button type="button" class="st${s.m!==undefined?" mid":""}" data-c="${c.id}" data-i="${i}" data-c4="${c4(i)}" aria-pressed="false"><b>${s.lab}</b><span>${fmt(stepPts(c,i))}</span></button>`).join("")}</div>
-        <div class="levels">${c.d.map((t,i)=>`<button type="button" class="lv" data-l="${i+1}" data-c="${c.id}"><span class="lh">${ANCH[i]}</span>${t}</button>`).join("")}</div>`;
+        <div class="levels">${c.d.map((t,i)=>`<button type="button" class="lv" data-l="${i+1}" data-c="${c.id}"><span class="lh">${ANCH[i]}</span>${t}</button>`).join("")}</div>
+        <p class="just" id="j-${c.id}" hidden></p>`;
       sec.appendChild(d);
     }
     host.appendChild(sec);
@@ -419,6 +433,9 @@ function render(){
   if(st)for(const c of CRITS){const v=st.scores[c.id];if(v===undefined||v===null)continue;if(v>=4)plus.push(c.plus);else minus.push(c.minus);}
   document.getElementById("fbPlus").innerHTML=plus.length?plus.map(x=>`<li>${x}</li>`).join(""):'<li class="empty">Sélectionnez des niveaux pour générer le retour.</li>';
   document.getElementById("fbMinus").innerHTML=minus.length?minus.map(x=>`<li>${x}</li>`).join(""):'<li class="empty">Aucune priorité pour l\'instant.</li>';
+  for(const c of CRITS){const j=document.getElementById("j-"+c.id);const txt=st&&st.notes&&st.notes[c.id];j.hidden=!txt;if(txt){j.innerHTML="<b>Proposition de Claude :</b> ";j.append(txt);}}
+  const db=document.getElementById("doubts");const dt=st&&st.doubts;db.hidden=!dt;if(dt){db.innerHTML="<b>Points à vérifier :</b> ";db.append(dt);}
+  const cn=document.getElementById("curName");if(document.activeElement!==cn)cn.value=st?st.name:"";cn.disabled=!st;
   const ta=document.getElementById("comment");if(document.activeElement!==ta)ta.value=st?st.comment||"":"";
   ta.disabled=!st;
   renderRecap();
@@ -478,7 +495,23 @@ function pronoteRows(sep){
 document.getElementById("pronoteCopy").onclick=()=>{if(!state.students.length)return;copyText(pronoteRows("\t").join("\r\n"),"Notes copiées : collez-les dans Pronote (Ctrl + V).");};
 document.getElementById("pronoteFile").onclick=()=>{if(!state.students.length)return;
   saveBlob(new Blob(["\ufeff"+pronoteRows(";").join("\r\n")],{type:"text/csv;charset=utf-8"}),"notes-pronote-synthese-delhi.csv","Fichier Pronote enregistré.");};
-let tt;function toast(m){const el=document.getElementById("toast");el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2200);}
+document.getElementById("curName").addEventListener("input",e=>{const st=cur();if(!st)return;st.name=e.target.value;save();
+  const b=document.querySelector(`[data-s="${st.id}"] .n`);if(b)b.textContent=st.name;document.getElementById("who").textContent=st.name;renderRecap();});
+/* Import des propositions : {"copies":[{"copie":"01","niveaux":{"b1":"B2",…},"justifications":{"b1":"…"},"conseils":"…","doutes":"…"}]} */
+document.getElementById("importBtn").onclick=()=>{
+  const box=document.getElementById("importBox");let data;
+  try{data=JSON.parse(box.value.trim().replace(/^```(json)?|```$/g,""));}catch(e){return toast("Bloc illisible : copiez-le en entier, accolades comprises.");}
+  const copies=Array.isArray(data)?data:data.copies;if(!Array.isArray(copies)||!copies.length)return toast("Aucune copie trouvée dans le bloc.");
+  const labs=STEPS.map(x=>x.lab);let n=0,skipped=0;
+  for(const cp of copies){const key=String(cp.copie||cp.id||"").trim();if(!key){skipped++;continue;}
+    let st=state.students.find(s=>s.copie===key||s.name===key||s.name==="COPIE "+key);
+    if(!st){st={id:uid(),name:"COPIE "+key,copie:key,comment:"",scores:{}};state.students.push(st);}
+    st.copie=key;st.scores={};st.notes={};
+    for(const [cid,lv] of Object.entries(cp.niveaux||{})){if(!CRITS.some(c=>c.id===cid))continue;const i=typeof lv==="number"?lv:labs.indexOf(String(lv).trim().toUpperCase().replace(" ",""));if(i>=0&&i<7)st.scores[cid]=i;}
+    for(const [cid,t] of Object.entries(cp.justifications||{}))if(CRITS.some(c=>c.id===cid))st.notes[cid]=String(t);
+    if(cp.conseils)st.comment=String(cp.conseils);st.doubts=cp.doutes?String(cp.doutes):"";n++;state.current=st.id;}
+  save();render();box.value="";toast(`${n} copie(s) importée(s)${skipped?`, ${skipped} ignorée(s)`:""}. Pensez à renommer « COPIE … » en NOM Prénom.`);};
+let tt;function toast(m){const el=document.getElementById("toast");el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,m.length>60?4200:2200);}
 /* ===== PDF élève (A4, une page) ===== */
 let DL=null;
 (async()=>{try{if(window.claude&&claude.use)DL=await claude.use("downloads");}catch(e){DL=null;}})();
